@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — LightFrame</title>
+    <link rel="stylesheet" href="css.css">
+    <style>
+        :root{ --bg:#f6f8fa; --card:#ffffff; --muted:#6b7785; --accent1:#FFD700; --accent2:#FFA500; --input:#f8fbfd }
+        html,body{height:100%}
+        body { background: linear-gradient(180deg,var(--bg),#eef2f6); color:#17202a; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding:18px }
+        .admin-wrap { padding: 20px; max-width:1140px; margin:18px auto; }
+        .panel { background: var(--card); border-radius:14px; padding:18px; box-shadow: 0 6px 24px rgba(18,24,32,0.06); border:1px solid rgba(20,30,40,0.03) }
+        h1 { margin:0 0 12px 0; font-size:22px }
+        .columns { display:grid; grid-template-columns: 1fr 380px; gap:18px; align-items:start }
+        .card-row{ display:flex; gap:10px; margin-bottom:10px; align-items:flex-start; flex-wrap:wrap }
+        .card-row input, .card-row textarea { padding:9px; border:1px solid #e6edf2; border-radius:10px; background:var(--input); font-size:14px }
+        .card-row .small { width:140px; flex:0 0 140px }
+        .card-row textarea { min-width:220px; max-width:600px }
+        .controls { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap }
+        .hidden{ display:none }
+        .login { max-width:520px; margin:18px auto; padding:16px; border-radius:12px; background:linear-gradient(180deg,#fff,#fbfdff); box-shadow:0 6px 18px rgba(20,30,40,0.04) }
+        .field-row { display:grid; grid-template-columns: 1fr 1fr; gap:10px }
+        label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px }
+        .modal-button { background: linear-gradient(135deg,var(--accent1),var(--accent2)); border:none; color:#111; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:800; box-shadow:0 6px 18px rgba(255,170,0,0.08) }
+        .modal-button.secondary { background:#f1f6fb; color:#17202a; font-weight:700 }
+        #preview { padding:12px; background:linear-gradient(180deg,#ffffff,#fcfcff); border-radius:12px; border:1px solid #eef3f8 }
+        #preview .logo { font-size:20px; font-weight:800; color:#222; margin-bottom:6px }
+        .small-muted { font-size:13px; color:var(--muted) }
+        .show-pass { margin-left:8px; transform:translateY(2px); color:var(--muted) }
+        .thumb { width:88px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #e9eef3 }
+        #pvCards li { display:flex; align-items:center; gap:8px; margin-bottom:8px; list-style:none }
+        .pv-thumb{ width:46px; height:36px; object-fit:cover; border-radius:6px; border:1px solid #eef3f8 }
+        .muted-note{ font-size:13px; color:var(--muted); margin-top:10px }
+        @media (max-width:920px){ .columns{ grid-template-columns: 1fr; } .card-row{ gap:8px } }
+    </style>
+</head>
+<body>
+    <div class="admin-wrap">
+    <h1>Админка LightFrame</h1>
+
+    <div id="loginPanel" class="login panel">
+        <h3 style="margin-top:0">Вход</h3>
+        <label class="small-muted">Пароль администратора</label>
+        <div style="display:flex; gap:8px; align-items:center">
+            <input id="adminPassword" type="password" placeholder="Пароль" style="flex:1; padding:10px; border-radius:8px; border:1px solid #e6edf2" />
+            <label class="show-pass"><input id="togglePass" type="checkbox"> показать</label>
+        </div>
+        <div class="controls">
+            <button id="btnLogin" class="modal-button">Войти</button>
+            <button id="btnDemo" class="modal-button secondary" title="Заполнить демо-данные">Демо</button>
+        </div>
+        <p style="margin-top:10px; color:#666; font-size:13px">Пароль по умолчанию: <strong>admin123</strong></p>
+    </div>
+
+    <div id="dash" class="hidden">
+        <div class="columns">
+            <div class="panel">
+                <h2>Основные настройки</h2>
+                <div style="display:grid; gap:10px; margin-bottom:18px">
+                    <div>
+                        <label>Название сайта</label>
+                        <input id="siteTitle" placeholder="Название сайта (логотип)" />
+                    </div>
+                    <div>
+                        <label>Заголовок раздела "О нас"</label>
+                        <input id="aboutTitle" placeholder="Заголовок раздела О нас" />
+                    </div>
+                    <div>
+                        <label>Текст "О нас"</label>
+                        <textarea id="aboutSubtitle" rows="3" placeholder="Текст О нас"></textarea>
+                    </div>
+                    <div class="field-row">
+                        <div>
+                            <label>Телефон</label>
+                            <input id="contactPhone" placeholder="Телефон" />
+                        </div>
+                        <div>
+                            <label>Email</label>
+                            <input id="contactEmail" placeholder="Email" />
+                        </div>
+                    </div>
+                    <div>
+                        <label>Адрес</label>
+                        <input id="contactAddress" placeholder="Адрес" />
+                    </div>
+                </div>
+
+                <h3>Услуги (карточки)</h3>
+                <div id="cardsList"></div>
+                <div style="margin-top:8px">
+                    <button id="addCard" class="modal-button">Добавить услугу</button>
+                </div>
+
+                <div class="controls" style="margin-top:20px; align-items:center">
+                    <button id="saveConfig" class="modal-button">Сохранить</button>
+                    <button id="openSiteBtn" class="modal-button secondary">Открыть сайт</button>
+                    <button id="importFromSite" class="modal-button secondary">Импорт с сайта</button>
+                    <button id="resetBtn" class="modal-button secondary">Сбросить</button>
+                    <span id="saveStatus" class="muted-note" style="margin-left:8px"></span>
+                    <div style="flex:1"></div>
+                    <button id="logoutBtn" class="modal-button secondary">Выйти</button>
+                </div>
+            </div>
+
+            <aside id="preview" class="panel">
+                <h3 style="margin-top:0">Превью сайта</h3>
+                <div style="padding:8px">
+                    <div class="logo">LightFrame</div>
+                    <p id="pvAboutTitle" style="font-weight:700; margin:8px 0 4px">О компании</p>
+                    <p id="pvAboutSubtitle" class="small-muted">Короткое описание компании</p>
+                    <hr style="margin:12px 0; border:none; border-top:1px solid #f0f3f6" />
+                    <div>
+                        <strong>Услуги:</strong>
+                        <ul id="pvCards" style="margin:8px 0 0 18px; padding:0; color:#334">
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <p style="margin-top:24px; color:#666; font-size:13px">Примечание: это статическая админка для локального сайта. Изменения сохраняются в `localStorage` и применяются на страницах сайта при загрузке.</p>
+</div>
+
+<script>
+// Простая аутентификация
+const PASSWORD = 'admin123';
+const loginPanel = document.getElementById('loginPanel');
+const dash = document.getElementById('dash');
+document.getElementById('btnLogin').addEventListener('click', ()=>{
+    const p = document.getElementById('adminPassword').value;
+    if(p === PASSWORD){ loginPanel.classList.add('hidden'); dash.classList.remove('hidden'); loadConfigToForm(); }
+    else alert('Неверный пароль');
+});
+document.getElementById('logoutBtn').addEventListener('click', ()=>{ dash.classList.add('hidden'); loginPanel.classList.remove('hidden'); });
+
+function createCardRow(card){
+    const wrap = document.createElement('div'); wrap.className='card-row';
+    wrap.innerHTML = `
+        <input class="small" placeholder="Короткий id" value="${card.service||''}" />
+        <input placeholder="Заголовок" value="${card.title||''}" />
+        <input class="small" placeholder="Цена" value="${card.price||''}" />
+        <input class="small" placeholder="Фотограф" value="${card.photographer||''}" />
+        <input class="small inp-image" placeholder="Изображение (путь)" value="${card.image||''}" />
+        <textarea class="inp-desc" placeholder="Описание" rows="1">${card.description||''}</textarea>
+        <div style="display:flex; gap:8px; align-items:center">
+            <button class="modal-button btnUp secondary" title="Вверх">▲</button>
+            <button class="modal-button btnDown secondary" title="Вниз">▼</button>
+            <button class="modal-button btnUpload secondary" title="Загрузить изображение">Загрузить</button>
+            <button class="modal-button btnRemove" style="background:#ffdede">Удалить</button>
+        </div>
+        <img class="thumb" src="${card.image||''}" alt="thumb" />
+    `;
+    const btnRemove = wrap.querySelector('.btnRemove'); btnRemove.addEventListener('click', ()=>{ wrap.remove(); updatePreview(); });
+    const btnUp = wrap.querySelector('.btnUp');
+    const btnDown = wrap.querySelector('.btnDown');
+    btnUp.addEventListener('click', ()=>{ const parent = wrap.parentNode; const prev = wrap.previousElementSibling; if(prev) parent.insertBefore(wrap, prev); updatePreview(); });
+    btnDown.addEventListener('click', ()=>{ const parent = wrap.parentNode; const next = wrap.nextElementSibling; if(next) parent.insertBefore(next, wrap); updatePreview(); });
+
+    // image upload: create hidden file input per row
+    const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.className = 'hidden';
+    wrap.appendChild(fileInput);
+    const uploadBtn = wrap.querySelector('.btnUpload');
+    const imgInput = wrap.querySelector('.inp-image');
+    const thumb = wrap.querySelector('.thumb');
+    uploadBtn.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', function(){
+        const f = this.files && this.files[0]; if(!f) return;
+        const reader = new FileReader(); reader.onload = ()=>{
+            const data = reader.result;
+            imgInput.value = data;
+            thumb.src = data;
+            updatePreview();
+        };
+        reader.readAsDataURL(f);
+    });
+    // allow manual image path input update
+    imgInput.addEventListener('input', ()=>{ thumb.src = imgInput.value || ''; updatePreview(); });
+    // set initial thumb
+    thumb.src = imgInput.value || '';
+    return wrap;
+}
+
+document.getElementById('addCard').addEventListener('click', ()=>{
+    const row = createCardRow({});
+    // update preview when any input changes
+    row.querySelectorAll('input, textarea').forEach(el=> el.addEventListener('input', updatePreview));
+    document.getElementById('cardsList').appendChild(row);
+    updatePreview();
+});
+
+function loadConfigToForm(){
+    const cfg = JSON.parse(localStorage.getItem('siteConfig')||'null');
+    if(!cfg) return;
+    document.getElementById('siteTitle').value = cfg.siteTitle||'';
+    document.getElementById('aboutTitle').value = cfg.aboutTitle||'';
+    document.getElementById('aboutSubtitle').value = cfg.aboutSubtitle||'';
+    if(cfg.contacts){ document.getElementById('contactPhone').value = cfg.contacts.phone||''; document.getElementById('contactEmail').value = cfg.contacts.email||''; document.getElementById('contactAddress').value = cfg.contacts.address||''; }
+    const list = document.getElementById('cardsList'); list.innerHTML='';
+    (cfg.cards||[]).forEach(c=>{
+        const row = createCardRow(c);
+        row.querySelectorAll('input, textarea').forEach(el=> el.addEventListener('input', updatePreview));
+        list.appendChild(row);
+    });
+    updatePreview();
+}
+
+document.getElementById('saveConfig').addEventListener('click', ()=>{
+    // merge-save: keep existing stored cards unless replaced/updated here — do not delete stored cards by omission
+    const stored = JSON.parse(localStorage.getItem('siteConfig') || '{}');
+    const base = { siteTitle: stored.siteTitle || '', aboutTitle: stored.aboutTitle || '', aboutSubtitle: stored.aboutSubtitle || '', contacts: stored.contacts || {}, cards: Array.isArray(stored.cards) ? stored.cards.slice() : [] };
+
+    // update base with top-level fields from form
+    base.siteTitle = document.getElementById('siteTitle').value || base.siteTitle;
+    base.aboutTitle = document.getElementById('aboutTitle').value || base.aboutTitle;
+    base.aboutSubtitle = document.getElementById('aboutSubtitle').value || base.aboutSubtitle;
+    base.contacts = { phone: document.getElementById('contactPhone').value || (base.contacts && base.contacts.phone) || '', email: document.getElementById('contactEmail').value || (base.contacts && base.contacts.email) || '', address: document.getElementById('contactAddress').value || (base.contacts && base.contacts.address) || '' };
+
+    const rows = document.querySelectorAll('#cardsList .card-row');
+    rows.forEach(r=>{
+        const inputs = r.querySelectorAll('input, textarea');
+        const card = { service: inputs[0].value, title: inputs[1].value, price: inputs[2].value, photographer: inputs[3].value, image: inputs[4].value, description: inputs[5].value };
+        // merge into base.cards by service key (replace if exists, otherwise push)
+        if(card.service){
+            const idx = base.cards.findIndex(x => x && x.service === card.service);
+            if(idx >= 0) base.cards[idx] = Object.assign({}, base.cards[idx], card);
+            else base.cards.push(card);
+        } else {
+            // if no service key, push as new
+            base.cards.push(card);
+        }
+    });
+
+    localStorage.setItem('siteConfig', JSON.stringify(base));
+    const st = document.getElementById('saveStatus'); if(st) st.textContent = 'Сохранено (без удаления)';
+    setTimeout(()=>{ if(st) st.textContent = ''; }, 2500);
+    updatePreview();
+});
+
+// export/import removed — simplified admin without file import/export
+
+// Show password toggle
+document.getElementById('togglePass').addEventListener('change', function(){
+    const p = document.getElementById('adminPassword'); p.type = this.checked ? 'text' : 'password';
+});
+
+// Demo filler button
+document.getElementById('btnDemo').addEventListener('click', ()=>{
+    const demo = {
+        siteTitle: 'LightFrame', aboutTitle: 'О компании', aboutSubtitle: 'Наша студия делает лучшие снимки.', contacts: { phone: '8 (800) 555-35-35', email: 'info@lightframe.kz', address: 'г. Уральск, ул. Пушкина, 10' },
+        cards: [
+            {service:'portrait', title:'Портретная съёмка', price:'15000', photographer:'Е. Иванова', image:'aaa/img/photo.jfif', description:'Короткое описание портретной съёмки.'},
+            {service:'lovestory', title:'Love Story', price:'25000', photographer:'А. Петров', image:'aaa/img/ll.jfif', description:'Романтические съёмки для пар.'}
+        ]
+    };
+    // save demo config, load it and open dashboard
+    localStorage.setItem('siteConfig', JSON.stringify(demo));
+    loadConfigToForm();
+    updatePreview();
+    loginPanel.classList.add('hidden');
+    dash.classList.remove('hidden');
+});
+
+function updatePreview(){
+    document.getElementById('pvAboutTitle').textContent = document.getElementById('aboutTitle').value || 'О компании';
+    document.getElementById('pvAboutSubtitle').textContent = document.getElementById('aboutSubtitle').value || 'Короткое описание компании';
+    document.getElementById('pvCards').innerHTML = '';
+    const rows = document.querySelectorAll('#cardsList .card-row');
+    rows.forEach(r=>{
+        const inputs = r.querySelectorAll('input, textarea');
+        const title = inputs[1] ? inputs[1].value : '';
+        const imgSrc = r.querySelector('.inp-image') ? r.querySelector('.inp-image').value : '';
+        const li = document.createElement('li');
+        if(imgSrc){ const im = document.createElement('img'); im.className = 'pv-thumb'; im.src = imgSrc; li.appendChild(im); }
+        const span = document.createElement('span'); span.textContent = title; li.appendChild(span);
+        document.getElementById('pvCards').appendChild(li);
+    });
+    const title = document.getElementById('siteTitle').value || 'LightFrame';
+    const logo = document.querySelector('#preview .logo'); if(logo) logo.textContent = title;
+}
+
+// update preview on form inputs
+['siteTitle','aboutTitle','aboutSubtitle','contactPhone','contactEmail','contactAddress'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', updatePreview); });
+
+// Open site button
+const openBtn = document.getElementById('openSiteBtn');
+if(openBtn) openBtn.addEventListener('click', ()=>{ window.open('ruka.html','_blank'); });
+
+// Reset button
+const resetBtn = document.getElementById('resetBtn');
+if(resetBtn) resetBtn.addEventListener('click', ()=>{
+    if(!confirm('Сбросить все настройки и удалить конфигурацию из localStorage?')) return;
+    localStorage.removeItem('siteConfig');
+    location.reload();
+});
+
+// Import from site (fetch ruka.html and parse .card elements to admin)
+const importBtn = document.getElementById('importFromSite');
+if(importBtn) importBtn.addEventListener('click', async ()=>{
+    try{
+        const res = await fetch('ruka.html');
+        const text = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        const cards = doc.querySelectorAll('.card');
+        const list = document.getElementById('cardsList');
+        cards.forEach(c=>{
+            const service = c.getAttribute('data-service') || '';
+            const price = c.getAttribute('data-price') || '';
+            const photographer = c.getAttribute('data-photographer') || '';
+            const img = (c.querySelector('img') && c.querySelector('img').getAttribute('src')) || '';
+            const title = c.querySelector('h3') ? c.querySelector('h3').textContent.trim() : '';
+            const desc = c.querySelector('p') ? c.querySelector('p').textContent.trim() : '';
+            // only add if not already present by service
+            const already = Array.from(list.querySelectorAll('.card-row')).some(r=> r.querySelectorAll('input, textarea')[0].value === service && service !== '');
+            if(!already){
+                const row = createCardRow({ service, title, price, photographer, image: img, description: desc });
+                row.querySelectorAll('input, textarea').forEach(el=> el.addEventListener('input', updatePreview));
+                list.appendChild(row);
+            }
+        });
+        updatePreview();
+        const st = document.getElementById('saveStatus'); if(st) st.textContent = 'Импортировано с сайта';
+        setTimeout(()=>{ if(st) st.textContent = ''; }, 2000);
+    }catch(e){ alert('Не удалось импортировать с сайта: '+e.message); }
+});
+
+</script>
+</body>
+</html>
